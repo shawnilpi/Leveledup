@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shawni — Luxe Greeting Widget (Framed by Default)</title>
+  <title>Shawni — Luxe Greeting Widget (Framed, Offset for Shadow)</title>
   <style>
     /*
-      Luxe, developer‑grade card — framed by default.
-      - Rounded corners + layered shadow + subtle hairline to feel premium in Notion
-      - Responsive type via --scale (auto from container width)
-      - Toggle frameless with ?frame=0 if you ever want to remove the inner card
+      Premium card with a slight rightward offset so shadows never clip inside Notion.
+      - Horizontal gutters are configurable via URL: ?pad=10 (both) or ?padl=12&padr=6
+      - Framed by default (rounded + layered shadow). Use ?frame=0 to remove the inner frame.
+      - Responsive typography using --scale based on container width.
     */
     :root{
-      --scale: 1;               /* computed by JS based on container width */
-      --bg: #fff;               /* framed default */
+      --scale: 1;                 /* computed by JS based on container width */
+      --padl: 12px;               /* left gutter inside iframe */
+      --padr: 8px;                /* right gutter inside iframe */
+      --bg: #fff;                 /* framed default */
       --fg: #111;
       --muted: #555;
       --radius: 16px;
@@ -26,10 +28,12 @@
     html,body{height:100%;margin:0}
     body{background:transparent;color:var(--fg)}
 
-    .wrap{ width:100%; display:grid; place-items:stretch; }
+    .wrap{ width:100%; display:grid; place-items:stretch; box-sizing:border-box;
+           padding-left: calc(var(--padl) * var(--scale));
+           padding-right: calc(var(--padr) * var(--scale)); }
 
     .card{
-      width: 100%;                  /* fills Notion embed width */
+      width: 100%;                  /* fills inner width after gutters */
       max-width: 520px;             /* looks clean in most columns */
       background: var(--bg);
       position: relative; overflow: hidden; box-sizing: border-box;
@@ -87,8 +91,20 @@
   <script>
     const CONFIG = { name: "Shawni", timeZone: "America/Denver", lat: 32.0, lon: -106.6, weatherRefreshMs: 10*60*1000 };
 
-    // Frameless toggle via ?frame=0 (default is framed)
-    (function(){ try{ const off = new URLSearchParams(location.search).get('frame')==='0'; if (off) document.getElementById('wrap').classList.add('frameless'); }catch(e){} })();
+    // URL controls: frame & gutters
+    (function(){
+      try{
+        const qs = new URLSearchParams(location.search);
+        const frameOff = qs.get('frame')==='0';
+        const pad = qs.get('pad');
+        const padl = qs.get('padl');
+        const padr = qs.get('padr');
+        if (frameOff) document.getElementById('wrap').classList.add('frameless');
+        if (pad) { document.documentElement.style.setProperty('--padl', pad+'px'); document.documentElement.style.setProperty('--padr', pad+'px'); }
+        if (padl) document.documentElement.style.setProperty('--padl', padl+'px');
+        if (padr) document.documentElement.style.setProperty('--padr', padr+'px');
+      }catch(e){}
+    })();
 
     // Fluid scale: base layout assumes 360px. Scale all sizes to container width.
     (function(){
